@@ -1,0 +1,23 @@
+{% if depression %}
+<div class="user-depression-section" style="grid-column: span {{ grid_span }};">
+    <div class="section-title">
+        <svg class="doodle" viewBox="0 0 24 24">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+        </svg>
+        炫压抑评级
+    </div>
+    <div class="depression-card rank-{{ depression.rank }}" style="margin-top: 15px;">
+        <div class="card-corner-tape"></div>
+        <div class="depression-header">
+            <div class="depression-rank-badge">{{ depression.rank }}</div>
+            <div class="depression-info">
+                <div class="depression-name">{{ depression.name }}</div>
+                <div class="depression-position">{{ depression.rank }}级</div>
+            </div>
+        </div>
+        <div class="depression-comment">
+            {{ depression.comment }}
+        </div>
+    </div>
+</div>
+{% endif %}

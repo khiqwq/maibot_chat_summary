@@ -1,0 +1,72 @@
+# chat_summary_plugin - 自动生成的配置文件
+# 智能分析QQ群聊天记录并生成总结，支持精美图片输出。功能包括：群聊整体总结、单个用户总结（含AI个性标签、活跃时段、今日名言、心情指数）、智能群友称号、群聊金句提取、炫压抑指数分析、每日定时自动总结。
+
+# 插件基本信息
+[plugin]
+
+# 配置文件版本
+config_version = "1.0.0"
+
+# 是否启用插件
+enabled = true
+
+# 总结功能配置
+
+[summary]
+
+# 图片模块显示顺序
+# 可选项：24H=24H活跃轨迹, Topics=今日话题, Portraits=群友画像, Rankings=炫压抑评级, Quotes=群贤毕至
+# 列表中的模块会按顺序显示，不在列表中的模块不显示
+# 示例：display_order = ["24H", "Topics"] 表示只显示这两个模块
+display_order = [
+    "24H",
+    "Topics",
+    "Portraits",
+    "Quotes",
+    "Rankings",
+]
+
+# 自动总结配置
+
+[auto_summary]
+
+# 是否启用每日自动总结
+enabled = true
+
+# 每日自动总结的时间（HH:MM格式）
+time = "23:00"
+
+# 时区设置（需安装pytz模块）
+timezone = "Asia/Shanghai"
+
+# 生成总结所需的最少消息数量
+min_messages = 10
+
+# 目标群聊QQ号列表（为空则对所有群聊生效）
+target_chats = [
+    "705379803",
+    "646271183",
+    "113481254",
+    "546962956",
+    "564286067",
+]
+
+# 命令权限控制（控制 /summary 命令的使用权限）
+
+[command_permission]
+
+# 使用黑名单模式
+# true（开启）: 黑名单模式 - 列表中的群不能使用命令
+# false（关闭）: 白名单模式 - 只有列表中的群可以使用命令
+use_blacklist = true
+
+# 目标群聊列表（根据 use_blacklist 决定含义）
+# - use_blacklist = true 时：此列表中的群不能使用命令（为空则允许所有群）
+# - use_blacklist = false 时：只有此列表中的群可以使用命令（为空则禁用所有群）
+target_chats = []
+
+# 说明：此配置与 auto_summary.target_chats 独立互不影响
+# - auto_summary.target_chats: 控制自动总结的目标群
+# - command_permission.target_chats: 控制手动命令 /summary 的使用权限
+admin_users = ["2900218130"]
+

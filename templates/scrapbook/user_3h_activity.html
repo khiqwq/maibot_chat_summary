@@ -1,0 +1,41 @@
+{% if chart_data %}
+<div class="chart-section" style="grid-column: span 12;">
+    <div class="coil"></div>
+    <div class="section-title">
+        <svg class="doodle" viewBox="0 0 24 24">
+            <path d="M3.5 18.49l6-6.01 4 4L22 6.92l-1.41-1.41-7.09 7.97-4-4L2 16.99z" />
+        </svg>
+        3H 活跃轨迹
+    </div>
+    <div style="margin-top: 15px;">
+        {% for item in chart_data %}
+        {% set color_var = 'var(--color-purple)' %}
+        {% set width = '2%' %}
+
+        {% if item.count == 0 %}
+        {% set color_var = 'var(--color-purple)' %}
+        {% set width = '2%' %}
+        {% elif item.percentage >= 70 %}
+        {% set color_var = 'var(--accent-orange)' %}
+        {% set width = item.percentage ~ '%' %}
+        {% elif item.percentage >= 30 %}
+        {% set color_var = 'var(--color-green)' %}
+        {% set width = item.percentage ~ '%' %}
+        {% else %}
+        {% set color_var = 'var(--color-blue)' %}
+        {% set width = item.percentage ~ '%' %}
+        {% endif %}
+
+        <div class="hand-chart-row">
+            <div class="chart-label">{{ item.time_label }}</div>
+            <div class="chart-bar-box">
+                <div class="crayon-bar" style="width: {{ width }}; background: {{ color_var }};"></div>
+            </div>
+            <div style="margin-left: 10px; font-size: 1.1rem; font-family: var(--font-hand); color: var(--ink-secondary); min-width: 40px; font-weight: bold;">
+                {{ item.count }}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}

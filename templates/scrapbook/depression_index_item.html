@@ -1,0 +1,34 @@
+<div class="depression-section">
+    <div class="section-title" style="justify-content: center;">
+        <svg class="doodle" viewBox="0 0 24 24">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" />
+        </svg>
+        炫压抑评级 Rankings
+    </div>
+    {% if depression_rankings %}
+    <div class="depression-grid">
+        {% for entry in depression_rankings %}
+        <div class="depression-card rank-{{ entry.rank }}">
+            <div class="card-corner-tape"></div>
+            <div class="depression-header">
+                <div class="depression-rank-badge">
+                    <span class="rank-label">{{ entry.rank }}</span>
+                </div>
+                <div class="depression-info">
+                    <div class="depression-name">{{ entry.name }}</div>
+                    <div class="depression-position">#{{ entry.position }}</div>
+                </div>
+            </div>
+            <div class="depression-comment">
+                {{ entry.comment }}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-message" style="text-align: center; padding: 40px 20px; color: var(--ink-primary); opacity: 0.6; font-family: var(--font-hand); font-size: 1.2rem;">
+        此群无压抑指数，可能是凉了~
+    </div>
+    {% endif %}
+</div>
+

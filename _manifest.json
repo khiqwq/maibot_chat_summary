@@ -1,0 +1,59 @@
+{
+  "manifest_version": 1,
+  "name": "聊天记录总结插件",
+  "version": "1.2.0",
+  "description": "智能分析QQ群聊天记录并生成总结，支持精美图片输出。功能包括：群聊整体总结、单个用户总结、智能群友称号、群聊金句提取、炫压抑指数分析、每日定时自动总结。基于久远(saberlights)的原插件修改。",
+  "author": {
+    "name": "风花叶",
+    "url": "https://github.com/khiqwq"
+  },
+  "license": "GPL-3.0-or-later",
+  "host_application": {
+    "min_version": "0.11.0"
+  },
+  "homepage_url": "https://github.com/khiqwq/chat_summary_plugin",
+  "repository_url": "https://github.com/khiqwq/chat_summary_plugin",
+  "keywords": [
+    "chat",
+    "summary",
+    "群聊",
+    "总结",
+    "分析",
+    "图片生成"
+  ],
+  "categories": [
+    "Utilities",
+    "Analysis"
+  ],
+  "plugin_info": {
+    "is_built_in": false,
+    "components": [
+      {
+        "type": "command",
+        "name": "chat_summary",
+        "description": "生成群聊总结"
+      },
+      {
+        "type": "command",
+        "name": "user_summary",
+        "description": "生成个人总结"
+      },
+      {
+        "type": "event_handler",
+        "name": "daily_summary_handler",
+        "description": "每日定时自动生成群聊总结"
+      }
+    ],
+    "features": [
+      "群聊整体聊天记录总结",
+      "单个用户聊天记录总结",
+      "智能群友称号分析",
+      "群聊金句提取",
+      "炫压抑指数分析",
+      "精美图片输出",
+      "每日定时自动总结",
+      "24小时发言活跃度分布图表"
+    ]
+  },
+  "id": "风花叶.maibot_chat_summary"
+}

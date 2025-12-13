@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{user_name}}的一天 · {{current_date}}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- 引入手写字体和正文阅读字体 -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Long+Cang&family=Noto+Sans+SC:wght@400;500;700&family=Patrick+Hand&display=swap"
+        rel="stylesheet">
+
+    <style>
+        :root {
+            /* 卡通手账调色板 */
+            --bg-paper: #fdfbf7;
+            --ink-primary: #5d4037;
+            --ink-secondary: #8d6e63;
+
+            --color-yellow: #fff9c4;
+            --color-pink: #ffccbc;
+            --color-blue: #b3e5fc;
+            --color-green: #c8e6c9;
+            --color-purple: #e1bee7;
+
+            --accent-orange: #ff7043;
+
+            /* MBTI 专属高对比色 */
+            --mbti-bg: #ede7f6;
+            --mbti-border: #9575cd;
+            --mbti-text: #512da8;
+
+            /* 称号专属色 */
+            --title-bg: #fffde7;
+            --title-border: #ffb74d;
+            --title-text: #bf360c;
+
+            --font-title: 'ZCOOL KuaiLe', cursive;
+            --font-hand: 'Patrick Hand', "KaiTi", "STKaiti", serif;
+            --font-body: 'Noto Sans SC', sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-body);
+            color: var(--ink-primary);
+            background-color: var(--bg-paper);
+            /* 点阵纸背景纹理 */
+            background-image: radial-gradient(#ddd 2px, transparent 2px);
+            background-size: 20px 20px;
+            min-height: 100vh;
+            padding: 40px 20px;
+            line-height: 1.6;
+        }
+
+        /* SVG 图标通用样式 */
+        .doodle {
+            width: 1em;
+            height: 1em;
+            fill: currentColor;
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        /* ==================== 1. 头部设计 ==================== */
+        .header {
+            text-align: center;
+            margin-bottom: 50px;
+            position: relative;
+            padding-top: 20px;
+        }
+
+        .title-sticker {
+            display: inline-block;
+            background: #fff;
+            padding: 20px 60px;
+            border: 3px dashed var(--ink-primary);
+            border-radius: 15px;
+            box-shadow: 5px 5px 0 var(--color-pink);
+            transform: rotate(-2deg);
+            position: relative;
+        }
+
+        .title-sticker h1 {
+            font-family: var(--font-title);
+            font-size: 2.8rem;
+            color: var(--accent-orange);
+            margin: 0;
+            -webkit-text-stroke: 1px var(--ink-primary);
+        }
+
+        .date-badge {
+            position: absolute;
+            bottom: -15px;
+            right: -20px;
+            background: var(--color-yellow);
+            padding: 5px 15px;
+            font-family: var(--font-hand);
+            font-size: 1.1rem;
+            box-shadow: 2px 2px 3px rgba(0, 0, 0, 0.1);
+            transform: rotate(5deg);
+            border: 1px solid var(--ink-primary);
+        }
+
+        .tape {
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120px;
+            height: 25px;
+            background: rgba(255, 171, 145, 0.7);
+            opacity: 0.8;
+            mask-image: radial-gradient(circle at 5px, transparent 4px, black 5px);
+            mask-size: 10px 100%;
+            mask-repeat: repeat-x;
+        }
+
+        /* ==================== 2. 用户头像区 ==================== */
+        .user-section {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .avatar-stamp {
+            display: inline-block;
+            width: 180px;
+            background: #fff;
+            padding: 15px;
+            box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.15);
+            /* 邮票齿孔背景 */
+            background-image: radial-gradient(transparent 50%, #fff 51%);
+            background-size: 10px 10px;
+            background-position: -5px -5px;
+            transform: rotate(-3deg);
+            position: relative;
+        }
+
+        .avatar-frame {
+            width: 150px;
+            height: 150px;
+            border: 3px solid var(--ink-primary);
+            background: var(--color-blue);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .avatar-frame img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .user-badges {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-family: var(--font-hand);
+            font-size: 1.1rem;
+            border: 2px solid var(--ink-primary);
+            box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.1);
+            transform: rotate(-1deg);
+        }
+
+        .badge.title {
+            background: var(--title-bg);
+            color: var(--title-text);
+            border: 1px solid var(--title-border);
+            font-family: var(--font-title);
+        }
+
+        .badge.mbti {
+            background: var(--mbti-bg);
+            color: var(--mbti-text);
+            border: 1px solid var(--mbti-border);
+            font-weight: bold;
+            letter-spacing: 0.5px;
+        }
+
+        /* ==================== 3. 统计邮票 ==================== */
+        .stats-row {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+        }
+
+        .stamp {
+            width: 150px;
+            background: #fff;
+            padding: 10px;
+            box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.05);
+            /* 邮票齿孔背景 */
+            background-image: radial-gradient(transparent 50%, #fff 51%);
+            background-size: 10px 10px;
+            background-position: -5px -5px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: transform 0.3s;
+            border: 1px solid #eee;
+        }
+
+        .stamp:hover {
+            transform: scale(1.1) rotate(0deg) !important;
+            z-index: 10;
+        }
+
+        .stamp-inner {
+            border: 1px solid var(--ink-secondary);
+            width: 100%;
+            padding: 15px 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: radial-gradient(circle, #fff 50%, #fafafa 100%);
+        }
+
+        .stamp-num {
+            font-family: var(--font-title);
+            font-size: 1.8rem;
+            color: var(--accent-orange);
+            line-height: 1;
+            margin: 5px 0;
+        }
+
+        .stamp-label {
+            font-family: var(--font-hand);
+            font-size: 1rem;
+            color: var(--ink-secondary);
+        }
+
+        /* ==================== 4. AI 总结便签 ==================== */
+        .summary-note {
+            background: var(--color-yellow);
+            padding: 30px;
+            border: 2px solid var(--ink-primary);
+            box-shadow: 5px 5px 0 rgba(0, 0, 0, 0.1);
+            transform: rotate(-0.5deg);
+            position: relative;
+            font-family: var(--font-hand);
+            font-size: 1.15rem;
+            line-height: 2;
+            margin-bottom: 40px;
+        }
+
+        .summary-note::before {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: 30px;
+            width: 60px;
+            height: 20px;
+            background: rgba(255, 171, 145, 0.7);
+        }
+
+        .section-title-main {
+            font-family: var(--font-title);
+            font-size: 2rem;
+            color: var(--accent-orange);
+            margin-bottom: 20px;
+            text-align: center;
+            position: relative;
+        }
+
+        .section-title-main::before,
+        .section-title-main::after {
+            content: '✦';
+            color: var(--color-pink);
+            margin: 0 15px;
+        }
+
+        /* ==================== 布局容器 ==================== */
+        .grid-layout {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .section-title {
+            font-family: var(--font-title);
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-title .doodle {
+            color: var(--accent-orange);
+            font-size: 1.3em;
+        }
+
+        /* ==================== 图表区 ==================== */
+        .chart-section {
+            background: #fff;
+            border: 2px solid var(--ink-primary);
+            border-radius: 5px 20px 20px 5px;
+            padding: 20px 20px 20px 40px;
+            position: relative;
+            box-shadow: 5px 5px 0 rgba(0, 0, 0, 0.05);
+        }
+
+        .coil {
+            position: absolute;
+            left: 10px;
+            top: 20px;
+            bottom: 20px;
+            width: 10px;
+            background: repeating-linear-gradient(to bottom, #ccc 0, #ccc 2px, transparent 2px, transparent 15px);
+            border-left: 2px solid #999;
+        }
+
+        /* 手绘条形图模拟 */
+        .hand-chart-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 14px;
+        }
+
+        .chart-label {
+            width: 100px;
+            font-family: var(--font-hand);
+            font-size: 1.1rem;
+        }
+
+        .chart-bar-box {
+            flex: 1;
+            margin-left: 10px;
+        }
+
+        .crayon-bar {
+            height: 14px;
+            border-radius: 7px;
+            border: 1px solid var(--ink-primary);
+            background-image: url("data:image/svg+xml,%3Csvg width='4' height='4' viewBox='0 0 4 4' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 4L4 0' stroke='rgba(0,0,0,0.1)' stroke-width='1'/%3E%3C/svg%3E");
+        }
+
+        /* ==================== 群友画像 ==================== */
+        .user-card {
+            break-inside: avoid;
+            background: #fff;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.05);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.2s;
+            min-height: 200px;
+            height: 100%;
+        }
+
+        .user-card:hover {
+            transform: translateY(-3px);
+            z-index: 5;
+            border-color: var(--ink-primary);
+        }
+
+        .card-tape {
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 18px;
+            background: var(--color-blue);
+            opacity: 0.9;
+        }
+
+        .user-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+            margin-bottom: 15px;
+            border-bottom: 2px dashed #f0f0f0;
+            padding-bottom: 15px;
+        }
+
+        .u-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: 2px solid var(--ink-primary);
+            background: #eee;
+            flex-shrink: 0;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #aaa;
+        }
+
+        .u-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .u-info {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .u-name {
+            font-family: var(--font-title);
+            font-size: 1.25rem;
+            line-height: 1.2;
+        }
+
+        .badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .u-reason {
+            font-family: var(--font-hand);
+            font-size: 0.95rem;
+            color: #555;
+            line-height: 1.6;
+            text-align: justify;
+            background: #fafafa;
+            padding: 12px;
+            border-radius: 8px;
+            position: relative;
+        }
+
+        /* ==================== 炫压抑评级 ==================== */
+        .depression-card {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+            border: 2px solid;
+            position: relative;
+            transform: rotate(-0.5deg);
+            transition: transform 0.2s;
+            min-height: 200px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .depression-card:hover {
+            transform: scale(1.03) rotate(0deg);
+            z-index: 5;
+        }
+
+        /* 不同等级的边框颜色 */
+        .depression-card.rank-S {
+            border-color: #ff4757;
+        }
+
+        .depression-card.rank-A {
+            border-color: #ff6348;
+        }
+
+        .depression-card.rank-B {
+            border-color: #ffa502;
+        }
+
+        .depression-card.rank-C {
+            border-color: #5352ed;
+        }
+
+        .depression-card.rank-D {
+            border-color: #70a1ff;
+        }
+
+        .card-corner-tape {
+            position: absolute;
+            top: -8px;
+            right: 20px;
+            width: 60px;
+            height: 20px;
+            background: rgba(255, 171, 145, 0.7);
+            transform: rotate(-3deg);
+        }
+
+        .depression-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 12px;
+            padding-bottom: 12px;
+            border-bottom: 1px dashed var(--ink-secondary);
+        }
+
+        .depression-rank-badge {
+            min-width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-title);
+            font-size: 1.8rem;
+            font-weight: bold;
+            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.15);
+            flex-shrink: 0;
+        }
+
+        .rank-S .depression-rank-badge {
+            background: linear-gradient(135deg, #ff4757, #ff6348);
+            color: #fff;
+        }
+
+        .rank-A .depression-rank-badge {
+            background: linear-gradient(135deg, #ff6348, #ffa502);
+            color: #fff;
+        }
+
+        .rank-B .depression-rank-badge {
+            background: linear-gradient(135deg, #ffa502, #ffb142);
+            color: #fff;
+        }
+
+        .rank-C .depression-rank-badge {
+            background: linear-gradient(135deg, #5352ed, #70a1ff);
+            color: #fff;
+        }
+
+        .rank-D .depression-rank-badge {
+            background: linear-gradient(135deg, #70a1ff, #7bed9f);
+            color: #fff;
+        }
+
+        .depression-info {
+            flex: 1;
+        }
+
+        .depression-name {
+            font-family: var(--font-title);
+            font-size: 1.3rem;
+            color: var(--ink-primary);
+            margin-bottom: 4px;
+        }
+
+        .depression-position {
+            font-family: var(--font-hand);
+            font-size: 0.9rem;
+            color: var(--ink-secondary);
+        }
+
+        .depression-comment {
+            font-family: var(--font-body);
+            font-size: 0.95rem;
+            line-height: 1.6;
+            color: var(--ink-primary);
+        }
+
+        /* ==================== 每日回响（金句） ==================== */
+        .quotes-section {
+            grid-column: span 12;
+            display: flex;
+            flex-direction: column;
+            gap: 35px;
+            margin-top: 20px;
+        }
+
+        .quote-wrapper {
+            display: flex;
+            flex-direction: column;
+            max-width: 85%;
+            position: relative;
+        }
+
+        .quote-wrapper:nth-child(odd) {
+            align-self: flex-start;
+        }
+
+        .quote-wrapper:nth-child(even) {
+            align-self: flex-end;
+            align-items: flex-end;
+        }
+
+        .q-bubble {
+            background: #fff;
+            border: 2px solid var(--ink-primary);
+            padding: 20px 25px;
+            border-radius: 20px;
+            box-shadow: 5px 5px 0 var(--color-blue);
+            position: relative;
+            z-index: 2;
+        }
+
+        .quote-wrapper:nth-child(odd) .q-bubble {
+            border-bottom-left-radius: 0;
+        }
+
+        .quote-wrapper:nth-child(even) .q-bubble {
+            border-bottom-right-radius: 0;
+            background: var(--color-yellow);
+            box-shadow: -5px 5px 0 var(--color-pink);
+            text-align: right;
+        }
+
+        .q-content {
+            font-family: var(--font-title);
+            font-size: 1.3rem;
+            line-height: 1.4;
+            margin-bottom: 10px;
+            position: relative;
+        }
+
+        .q-quote-mark {
+            position: absolute;
+            font-family: serif;
+            font-size: 4rem;
+            color: rgba(0, 0, 0, 0.05);
+            top: -20px;
+            left: -10px;
+            pointer-events: none;
+        }
+
+        .q-author {
+            font-family: var(--font-hand);
+            font-weight: bold;
+            color: var(--ink-secondary);
+            font-size: 0.95rem;
+        }
+
+        .q-analysis-note {
+            background: #fffde7;
+            padding: 12px 15px;
+            font-size: 0.9rem;
+            color: #666;
+            width: 95%;
+            margin-top: -8px;
+            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+            border: 1px solid #ddd;
+            position: relative;
+            z-index: 1;
+            font-family: var(--font-body);
+            line-height: 1.5;
+        }
+
+        .quote-wrapper:nth-child(odd) .q-analysis-note {
+            transform: rotate(-1deg) translateX(10px);
+            border-radius: 0 0 10px 10px;
+        }
+
+        .quote-wrapper:nth-child(even) .q-analysis-note {
+            transform: rotate(1deg) translateX(-10px);
+            text-align: left;
+            background: #f3e5f5;
+            border-radius: 0 0 10px 10px;
+        }
+
+        .note-label {
+            font-weight: bold;
+            color: var(--accent-orange);
+            display: block;
+            margin-bottom: 4px;
+            font-family: var(--font-title);
+        }
+
+        /* Footer */
+        .footer {
+            margin-top: 60px;
+            text-align: center;
+            font-family: var(--font-hand);
+            color: var(--ink-secondary);
+            border-top: 2px dashed var(--ink-secondary);
+            padding-top: 20px;
+            font-size: 1.05rem;
+            opacity: 0.8;
+        }
+
+        @media (max-width: 768px) {
+            .grid-layout {
+                display: flex;
+                flex-direction: column;
+            }
+
+            .stamp {
+                width: 45%;
+            }
+
+            .quote-wrapper {
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+
+        <!-- 1. 头部 -->
+        <div class="header">
+            <div class="title-sticker">
+                <div class="tape"></div>
+                <h1>{{user_name}}的一天</h1>
+                <div class="date-badge">{{current_date}}</div>
+            </div>
+        </div>
+
+        <!-- 2. 用户头像区 -->
+        <div class="user-section">
+            <div class="avatar-stamp">
+                <div class="avatar-frame">
+                    {% if avatar_data %}
+                    <img src="{{ avatar_data }}" alt="avatar">
+                    {% else %}
+                    👤
+                    {% endif %}
+                </div>
+            </div>
+            {% if user_title or user_mbti %}
+            <div class="user-badges">
+                {% if user_title %}
+                <span class="badge title">{{ user_title }}</span>
+                {% endif %}
+                {% if user_mbti %}
+                <span class="badge mbti">{{ user_mbti }}</span>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- 3. 统计邮票 -->
+        <div class="stats-row">
+            <div class="stamp" style="transform: rotate(-2deg);">
+                <div class="stamp-inner">
+                    <svg class="doodle" style="font-size: 2.5rem; color: var(--accent-orange);" viewBox="0 0 24 24">
+                        <path
+                            d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z" />
+                    </svg>
+                    <div class="stamp-num">{{message_count}}</div>
+                    <div class="stamp-label">消息总数</div>
+                </div>
+            </div>
+            <div class="stamp" style="transform: rotate(2deg); margin-top: 10px;">
+                <div class="stamp-inner">
+                    <svg class="doodle" style="font-size: 2.5rem; color: var(--color-blue);" viewBox="0 0 24 24">
+                        <path
+                            d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z" />
+                    </svg>
+                    <div class="stamp-num">{{total_characters}}</div>
+                    <div class="stamp-label">总字符数</div>
+                </div>
+            </div>
+            <div class="stamp" style="transform: rotate(-1deg);">
+                <div class="stamp-inner">
+                    <svg class="doodle" style="font-size: 2.5rem; color: var(--color-green);" viewBox="0 0 24 24">
+                        <path
+                            d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z" />
+                    </svg>
+                    <div class="stamp-num">{{emoji_count}}</div>
+                    <div class="stamp-label">表情统计</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. AI 总结便签 -->
+        {% if summary_text %}
+        <div class="section-title-main">今日画像</div>
+        <div class="summary-note">
+            {{ summary_text }}
+        </div>
+        {% endif %}
+
+        <!-- 5. 动态模块区域 -->
+        <div class="grid-layout">
+            {{modules_html|safe}}
+        </div>
+
+        <!-- 6. 金句区域（如果有） -->
+        {% if quotes_html %}
+        <div class="quotes-section">
+            {{quotes_html|safe}}
+        </div>
+        {% endif %}
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>~ 今天也是充实的一天呢 ~</p>
+        </div>
+    </div>
+</body>
+
+</html>

@@ -1,0 +1,8 @@
+# 忽略所有生成的图片文件
+*.jpg
+*.jpeg
+*.png
+*.gif
+
+# 但保留 .gitkeep
+!.gitkeep

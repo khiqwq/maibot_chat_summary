@@ -1,0 +1,36 @@
+{% if portrait %}
+<div class="user-portrait-section" style="grid-column: span {{ grid_span }};">
+    <div class="section-title">
+        <svg class="doodle" viewBox="0 0 24 24">
+            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+        </svg>
+        群友画像
+    </div>
+    <div class="user-card" style="margin-top: 15px;">
+        <div class="card-tape"></div>
+        <div class="user-header">
+            <div class="u-avatar">
+                {% if portrait.avatar_data %}
+                <img src="{{ portrait.avatar_data }}" alt="avatar" style="width: 100%; height: 100%; object-fit: cover;">
+                {% else %}
+                👤
+                {% endif %}
+            </div>
+            <div class="u-info">
+                <div class="u-name">{{ portrait.name }}</div>
+                <div class="badges">
+                    {% if portrait.title %}
+                    <span class="badge title">{{ portrait.title }}</span>
+                    {% endif %}
+                    {% if portrait.mbti %}
+                    <span class="badge mbti">{{ portrait.mbti }}</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="u-reason">
+            {{ portrait.reason }}
+        </div>
+    </div>
+</div>
+{% endif %}
