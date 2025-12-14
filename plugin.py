@@ -25,8 +25,29 @@ import asyncio
 import json
 import os
 from datetime import datetime, timedelta
-from typing import List, Tuple, Optional, Dict
+from typing import List, Tuple, Optional, Dict, Union
 from collections import Counter
+
+
+def parse_config_list(value: Union[str, list], separator: str = ",") -> List[str]:
+    """将配置值解析为列表（支持字符串和列表两种格式）"""
+    if isinstance(value, list):
+        return [str(v).strip() for v in value if str(v).strip()]
+    if isinstance(value, str) and value.strip():
+        return [v.strip() for v in value.split(separator) if v.strip()]
+    return []
+
+
+def parse_config_int_list(value: Union[str, list], separator: str = ",") -> List[int]:
+    """将配置值解析为整数列表（支持字符串和列表两种格式）"""
+    str_list = parse_config_list(value, separator)
+    result = []
+    for v in str_list:
+        try:
+            result.append(int(v))
+        except (ValueError, TypeError):
+            pass
+    return result
 
 from src.plugin_system import (
     BasePlugin,
@@ -73,11 +94,7 @@ class ChatSummaryCommand(BaseCommand):
 
             # 读取配置
             use_blacklist = self.get_config("command_permission.use_blacklist", True)
-            target_chats = self.get_config("command_permission.target_chats", [])
-
-            # 确保 target_chats 是整数列表（WebUI 可能发送字符串列表）
-            if target_chats and isinstance(target_chats, list):
-                target_chats = [int(chat_id) if isinstance(chat_id, str) else chat_id for chat_id in target_chats]
+            target_chats = parse_config_int_list(self.get_config("command_permission.target_chats", ""))
 
             # group_id 可能是字符串或整数，统一转为整数进行比较
             try:
@@ -99,7 +116,7 @@ class ChatSummaryCommand(BaseCommand):
                     return False, "权限不足", False  # 静默，不处理，让其他命令继续
 
             # ===== 管理员权限检查 =====
-            admin_users = self.get_config("command_permission.admin_users", [])
+            admin_users = parse_config_int_list(self.get_config("command_permission.admin_users", ""))
             if admin_users:  # 如果列表不为空，进行管理员检查
                 # 获取当前用户的QQ号
                 user_id = self.message.message_info.user_info.user_id
@@ -194,7 +211,7 @@ class ChatSummaryCommand(BaseCommand):
                                 title_item["avatar_data"] = ""
 
                     # 获取显示顺序配置
-                    display_order = self.get_config("summary.display_order", ["24H", "Topics", "Portraits", "Quotes", "Rankings"])
+                    display_order = parse_config_list(self.get_config("summary.display_order", "24H,Topics,Portraits,Quotes,Rankings"))
 
                     # 计算目标日期
                     if time_range == "昨天":
@@ -462,7 +479,7 @@ class SummaryScheduler:
         self.task = asyncio.create_task(self._schedule_loop(summary_generator))
 
         summary_time = self.get_config("auto_summary.time", "23:00")
-        target_chats = self.get_config("auto_summary.target_chats", [])
+        target_chats = parse_config_int_list(self.get_config("auto_summary.target_chats", ""))
 
         if target_chats:
             logger.info(f"✅ 定时任务已启动 - 执行时间: {summary_time}, 目标群聊: {len(target_chats)}个")
@@ -561,10 +578,7 @@ class UserSummaryCommand(BaseCommand):
 
             # 读取配置
             use_blacklist = self.get_config("command_permission.use_blacklist", True)
-            target_chats = self.get_config("command_permission.target_chats", [])
-
-            if target_chats and isinstance(target_chats, list):
-                target_chats = [int(chat_id) if isinstance(chat_id, str) else chat_id for chat_id in target_chats]
+            target_chats = parse_config_int_list(self.get_config("command_permission.target_chats", ""))
 
             try:
                 group_id_int = int(group_id)
@@ -593,9 +607,7 @@ class UserSummaryCommand(BaseCommand):
             current_user_nickname = self.message.message_info.user_info.user_nickname or "未知用户"
 
             # 获取 allowed_users 列表（用于后续判断查看他人权限）
-            allowed_users = self.get_config("user_summary.allowed_users", [])
-            if allowed_users:
-                allowed_users = [int(uid) if isinstance(uid, str) else uid for uid in allowed_users]
+            allowed_users = parse_config_int_list(self.get_config("user_summary.allowed_users", ""))
             try:
                 current_user_id_int = int(current_user_id)
             except (ValueError, TypeError):
@@ -776,10 +788,11 @@ class UserSummaryCommand(BaseCommand):
             )
 
             # ===== 获取配置的显示顺序 =====
-            display_order = self.get_config(
-                "user_summary.display_order",
-                ["3H", "Portraits,Rankings"]
-            )
+            display_order_raw = self.get_config("user_summary.display_order", "3H,Portraits|Rankings")
+            # 解析显示顺序：用逗号分隔模块，用|分隔并排显示的模块
+            display_order = parse_config_list(display_order_raw)
+            # 将|替换回逗号（用于兼容旧格式）
+            display_order = [item.replace("|", ",") for item in display_order]
 
             # 计算目标日期
             if time_range == "昨天":
@@ -972,12 +985,8 @@ class DailySummaryEventHandler(BaseEventHandler):
                 return
 
             # 获取配置
-            target_chats = self.get_config("auto_summary.target_chats", [])
+            target_chats = parse_config_int_list(self.get_config("auto_summary.target_chats", ""))
             min_messages = self.get_config("auto_summary.min_messages", 10)
-
-            # 确保 target_chats 是整数列表（WebUI 可能发送字符串列表）
-            if target_chats and isinstance(target_chats, list):
-                target_chats = [int(chat_id) if isinstance(chat_id, str) else chat_id for chat_id in target_chats]
 
             # 过滤目标群聊（使用实际的 group_id 进行匹配）
             if target_chats:
@@ -1048,7 +1057,7 @@ class DailySummaryEventHandler(BaseEventHandler):
                                         title_item["avatar_data"] = ""
 
                             # 获取显示顺序配置
-                            display_order = self.get_config("summary.display_order", ["24H", "Topics", "Portraits", "Quotes", "Rankings"])
+                            display_order = parse_config_list(self.get_config("summary.display_order", "24H,Topics,Portraits,Quotes,Rankings"))
 
                             # 自动总结使用今天的日期
                             target_date = datetime.now()
@@ -1219,27 +1228,33 @@ class ChatSummaryPlugin(BasePlugin):
     # 配置Schema定义
     config_schema: dict = {
         "plugin": {
-            "config_version": ConfigField(type=str, default="1.0.0", description="配置文件版本"),
+            "config_version": ConfigField(type=str, default="1.3.0", description="配置文件版本"),
             "enabled": ConfigField(type=bool, default=False, description="是否启用插件"),
         },
         "summary": {
             "display_order": ConfigField(
-                type=list,
-                default=["24H", "Topics", "Portraits", "Quotes", "Rankings"],
-                description="图片模块显示顺序（可选项：24H=24H活跃轨迹, Topics=今日话题, Portraits=群友画像, Quotes=语出惊人, Rankings=炫压抑评级。列表中的模块会按顺序显示，不在列表中的模块不显示）",
+                type=str,
+                default="24H,Topics,Portraits,Quotes,Rankings",
+                description="图片模块显示顺序，用逗号分隔（可选项：24H=24H活跃轨迹, Topics=今日话题, Portraits=群友画像, Quotes=语出惊人, Rankings=炫压抑评级）",
+                input_type="textarea",
+                rows=3,
             ),
         },
         "user_summary": {
             "enabled": ConfigField(type=bool, default=True, description="是否启用个人总结功能（关闭后所有人都无法使用/mysummary命令）"),
             "allowed_users": ConfigField(
-                type=list,
-                default=[],
-                description="允许查看他人总结的用户QQ号列表（为空时所有人可以看自己和别人；有值时所有人可以看自己，但只有列表中的用户可以查看他人总结）",
+                type=str,
+                default="",
+                description="允许查看他人总结的用户QQ号，用逗号分隔（为空时所有人可以看自己和别人；有值时所有人可以看自己，但只有列表中的用户可以查看他人总结）",
+                input_type="textarea",
+                rows=2,
             ),
             "display_order": ConfigField(
-                type=list,
-                default=["3H", "Portraits,Rankings"],
-                description="个人总结图片模块显示顺序（可选项：3H=3H活跃轨迹, Portraits=群友画像, Rankings=炫压抑评级, Quotes=语出惊人。用逗号分隔的模块会横向排列，如'Portraits,Rankings'表示画像和评级并排显示）",
+                type=str,
+                default="3H,Portraits|Rankings",
+                description="个人总结图片模块显示顺序，用逗号分隔（可选项：3H=3H活跃轨迹, Portraits=群友画像, Rankings=炫压抑评级, Quotes=语出惊人。用|分隔的模块会横向排列，如'Portraits|Rankings'表示画像和评级并排显示）",
+                input_type="textarea",
+                rows=2,
             ),
         },
         "auto_summary": {
@@ -1247,7 +1262,13 @@ class ChatSummaryPlugin(BasePlugin):
             "time": ConfigField(type=str, default="23:00", description="每日自动总结的时间（HH:MM格式）"),
             "timezone": ConfigField(type=str, default="Asia/Shanghai", description="时区设置（需安装pytz模块）"),
             "min_messages": ConfigField(type=int, default=10, description="生成总结所需的最少消息数量"),
-            "target_chats": ConfigField(type=list, default=[], description="目标群聊QQ号列表（为空则对所有群聊生效）"),
+            "target_chats": ConfigField(
+                type=str,
+                default="",
+                description="目标群聊QQ号，用逗号分隔（为空则对所有群聊生效）",
+                input_type="textarea",
+                rows=2,
+            ),
         },
         "command_permission": {
             "use_blacklist": ConfigField(
@@ -1256,14 +1277,18 @@ class ChatSummaryPlugin(BasePlugin):
                 description="使用黑名单模式（开启：黑名单模式-列表中的群不能使用命令；关闭：白名单模式-只有列表中的群可以使用命令）",
             ),
             "target_chats": ConfigField(
-                type=list,
-                default=[],
-                description="目标群聊列表（黑名单模式：这些群不能使用；白名单模式：只有这些群可以使用；为空时：黑名单允许所有群，白名单禁用所有群）",
+                type=str,
+                default="",
+                description="目标群聊QQ号，用逗号分隔（黑名单模式：这些群不能使用；白名单模式：只有这些群可以使用；为空时：黑名单允许所有群，白名单禁用所有群）",
+                input_type="textarea",
+                rows=2,
             ),
             "admin_users": ConfigField(
-                type=list,
-                default=[],
-                description="管理员QQ号列表，仅控制/summary命令（为空时所有人可用；有值时只有列表中的用户可以使用/summary命令）",
+                type=str,
+                default="",
+                description="管理员QQ号，用逗号分隔，仅控制/summary命令（为空时所有人可用；有值时只有列表中的用户可以使用/summary命令）",
+                input_type="textarea",
+                rows=2,
             ),
         },
     }
