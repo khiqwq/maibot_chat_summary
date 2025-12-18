@@ -1,6 +1,6 @@
 {
   "manifest_version": 1,
-  "name": "聊天记录总结插件",
+  "name": "每日分析插件",
   "version": "1.2.0",
   "description": "智能分析QQ群聊天记录并生成总结，支持精美图片输出。功能包括：群聊整体总结、单个用户总结、智能群友称号、群聊金句提取、炫压抑指数分析、每日定时自动总结。基于久远(saberlights)的原插件修改。",
   "author": {
@@ -11,8 +11,8 @@
   "host_application": {
     "min_version": "0.11.0"
   },
-  "homepage_url": "https://github.com/khiqwq/chat_summary_plugin",
-  "repository_url": "https://github.com/khiqwq/chat_summary_plugin",
+  "homepage_url": "https://github.com/khiqwq/Maibot_daily_analysis",
+  "repository_url": "https://github.com/khiqwq/Maibot_daily_analysis",
   "keywords": [
     "chat",
     "summary",
@@ -55,5 +55,5 @@
       "24小时发言活跃度分布图表"
     ]
   },
-  "id": "风花叶.maibot_chat_summary"
+  "id": "风花叶.Maibot_daily_analysis"
 }

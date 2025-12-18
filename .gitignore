@@ -1,25 +1,31 @@
-# Python
+# Python 缓存文件
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
-.Python
-*.egg-info/
-.eggs/
 
-# IDE
-.idea/
+# 日志文件
+logs/
+*.log
+*.log.*
+
+# IDE 配置
 .vscode/
+.idea/
 *.swp
 *.swo
 
-# OS
+# 测试临时文件
+src/
+test_*.py.bak
+
+# 系统文件
 .DS_Store
 Thumbs.db
 
-# Config backups
-*.backup.*
+# 用户配置文件（不提交到仓库）
+config.toml
+config.toml.backup.*
 
-# Generated data (keep directory structure)
-data_GeneratePicture/*.png
-data_GeneratePicture/*.jpg
+# 生成的图片文件
+data_GeneratePicture/

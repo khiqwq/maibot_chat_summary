@@ -558,6 +558,11 @@ class SummaryImageGenerator:
         # 将所有模块HTML合并
         modules_html = "\n".join(modules_html_list)
 
+        # 检查 Quotes 是否已经在 display_order 中被处理
+        # 如果是，就不再单独传 quotes_html 给模板，避免重复渲染
+        quotes_in_display_order = any("Quotes" in str(item) for item in display_order)
+        template_quotes_html = "" if quotes_in_display_order else quotes_html
+
         # ===== 渲染主模板 =====
         html_content = template_manager.render_template(
             "user_summary_template.html",
@@ -571,7 +576,7 @@ class SummaryImageGenerator:
             emoji_count=emoji_count,
             summary_text=summary_text,
             modules_html=modules_html,
-            quotes_html=quotes_html
+            quotes_html=template_quotes_html
         )
 
         # ===== 使用 Playwright 渲染为图片 =====

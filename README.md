@@ -1,4 +1,4 @@
-# 聊天总结插件 📊
+# MaiBot 每日分析插件 📊
 
 一款为 MaiBot 设计的智能聊天记录分析插件，能够生成精美的群聊总结和个人总结图片，帮你快速回顾群里发生了什么。
 
@@ -35,7 +35,7 @@
 
 ```bash
 # 进入插件目录
-cd modules/MaiBot/plugins/chat_summary_plugin
+cd modules/MaiBot/plugins/Maibot_daily_analysis
 
 # 运行安装脚本（自动安装 jinja2 + playwright + Chromium）
 python install_dependencies.py
@@ -357,7 +357,7 @@ GPL-3.0-or-later
 
 ## 💬 需要帮助？
 
-- 📝 提交 Issue：[GitHub Issues](https://github.com/khiqwq/chat_summary_plugin/issues)
+- 📝 提交 Issue：[GitHub Issues](https://github.com/khiqwq/Maibot_daily_analysis/issues)
 - 📖 查看文档：[MaiBot 官方文档](https://docs.mai-mai.org/)
 
 祝你使用愉快！✨
