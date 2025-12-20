@@ -12,6 +12,7 @@ from datetime import datetime
 
 from .html_template_manager import HTMLTemplateManager
 from .html_renderer import render_html_to_image
+from .constants import AnalysisConfig
 
 # 导入logger
 try:
@@ -69,7 +70,9 @@ class SummaryImageGenerator:
         user_profile: dict = None,
         group_id: str = None,
         display_order: list = None,
-        target_date: datetime = None
+        target_date: datetime = None,
+        max_depression_display: int = None,
+        depression_show_bottom: bool = None
     ) -> str:
         """生成聊天总结图片 - 使用HTML模板渲染
 
@@ -104,6 +107,11 @@ class SummaryImageGenerator:
             hourly_distribution = {}
         if display_order is None:
             display_order = ["24H", "Topics", "Portraits", "Quotes", "Rankings"]
+        # 炫压抑评级配置：如果未传入则使用 constants.py 中的默认值
+        if max_depression_display is None:
+            max_depression_display = AnalysisConfig.MAX_DEPRESSION_DISPLAY
+        if depression_show_bottom is None:
+            depression_show_bottom = AnalysisConfig.DEPRESSION_SHOW_BOTTOM_HALF
 
         # 获取插件目录和模板目录
         plugin_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -235,38 +243,49 @@ class SummaryImageGenerator:
                 # 0人：显示"此群无压抑指数，可能是凉了~"
                 depression_rankings = []  # 空列表，模板会显示特殊消息
             else:
-                # 有数据：至少1人就显示
+                # 有数据：根据配置决定展示方式
                 total_count = len(depression_index)
 
-                if total_count <= 6:
-                    # 6人以内：全部显示，正常排名
+                if total_count <= max_depression_display:
+                    # 人数不超过最大展示数：全部显示，正常排名
                     for i, entry in enumerate(depression_index, 1):
                         depression_rankings.append({
                             "name": entry.get("name", ""),
                             "rank": entry.get("rank", ""),
                             "comment": entry.get("comment", ""),
-                            "position": i  # 1, 2, 3, 4, 5, 6
+                            "position": i
                         })
                 else:
-                    # 超过6人：显示前3名 + 后3名（fall）
-                    # 前3名
-                    for i, entry in enumerate(depression_index[:3], 1):
-                        depression_rankings.append({
-                            "name": entry.get("name", ""),
-                            "rank": entry.get("rank", ""),
-                            "comment": entry.get("comment", ""),
-                            "position": i  # 1, 2, 3
-                        })
-
-                    # 后3名（fall 3, fall 2, fall 1）
-                    bottom_3 = depression_index[-3:]
-                    for i, entry in enumerate(bottom_3, 1):
-                        depression_rankings.append({
-                            "name": entry.get("name", ""),
-                            "rank": entry.get("rank", ""),
-                            "comment": entry.get("comment", ""),
-                            "position": f"fall {len(bottom_3) - i + 1}"  # fall 3, fall 2, fall 1
-                        })
+                    # 超过最大展示数：根据配置决定展示方式
+                    if depression_show_bottom:
+                        # 展示前 N/2 名 + 后 N/2 名
+                        half = max_depression_display // 2
+                        # 前半部分
+                        for i, entry in enumerate(depression_index[:half], 1):
+                            depression_rankings.append({
+                                "name": entry.get("name", ""),
+                                "rank": entry.get("rank", ""),
+                                "comment": entry.get("comment", ""),
+                                "position": i
+                            })
+                        # 后半部分（倒数）
+                        bottom_entries = depression_index[-half:]
+                        for i, entry in enumerate(bottom_entries, 1):
+                            depression_rankings.append({
+                                "name": entry.get("name", ""),
+                                "rank": entry.get("rank", ""),
+                                "comment": entry.get("comment", ""),
+                                "position": f"fall {half - i + 1}"  # fall 3, fall 2, fall 1
+                            })
+                    else:
+                        # 只展示前 N 名
+                        for i, entry in enumerate(depression_index[:max_depression_display], 1):
+                            depression_rankings.append({
+                                "name": entry.get("name", ""),
+                                "rank": entry.get("rank", ""),
+                                "comment": entry.get("comment", ""),
+                                "position": i
+                            })
 
             rankings_html = template_manager.render_template(
                 "depression_index_item.html",

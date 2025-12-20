@@ -480,19 +480,24 @@ class ChatAnalysisUtils:
 {users_info}
 
 评级标准：
-- S级：想色色但欲言又止,或疯狂发涩图/开黄腔(过度补偿)
-- A级：经常想开车但克制扭捏
-- B级：偶尔开车,表达自然
-- C级：很少提及或表达健康
-- D级：完全回避性话题
+- S级(121-150分)：想色色但欲言又止,或疯狂发涩图/开黄腔(过度补偿)
+- A级(91-120分)：经常想开车但克制扭捏
+- B级(61-90分)：偶尔开车,表达自然
+- C级(31-60分)：很少提及或表达健康
+- D级(0-30分)：完全回避性话题
 
-要求：对所有用户进行评级，评价25-30字，采用文言文风格，文雅而有趣。按压抑指数从高到低排序（S→A→B→C→D）。
+要求：
+1. 对所有用户进行评级，评价25-30字，采用文言文风格，文雅而有趣
+2. 每个用户必须给出一个0-150的精确分数(score)，用于排名
+3. 分数要能区分同等级内的差异，例如同为S级，更压抑的给145分，稍轻的给125分
+4. 按分数从高到低排序返回
 
 返回JSON（不要markdown代码块，不要emoji）：
 [
   {{
     "name": "用户名",
     "rank": "S/A/B/C/D",
+    "score": 0-150的整数分数,
     "comment": "简短评价"
   }}
 ]"""
@@ -671,7 +676,7 @@ class ChatAnalysisUtils:
             user_stats: 用户统计数据（用于匹配 user_id）
 
         Returns:
-            验证后的数据列表
+            验证后的数据列表，按 score 从高到低排序
         """
         validated = []
         for item in data:
@@ -696,6 +701,15 @@ class ChatAnalysisUtils:
             if not name or not rank or not comment:
                 continue
 
+            # 验证并提取 score（0-150），用于精确排序
+            try:
+                score = int(item.get("score", 0))
+                score = max(0, min(150, score))  # 限制在 0-150 范围内
+            except (ValueError, TypeError):
+                # 如果没有 score 或无效，根据 rank 给一个默认分数
+                rank_default_scores = {"S": 135, "A": 105, "B": 75, "C": 45, "D": 15}
+                score = rank_default_scores.get(rank, 75)
+
             # 尝试从 user_stats 中查找匹配的 user_id
             user_id = ""
             if user_stats:
@@ -707,9 +721,13 @@ class ChatAnalysisUtils:
             validated.append({
                 "name": name,
                 "rank": rank,
+                "score": score,  # 保留 score 用于排序，但不在图片中显示
                 "comment": comment,
                 "user_id": user_id
             })
+
+        # 按 score 从高到低排序
+        validated.sort(key=lambda x: x["score"], reverse=True)
 
         return validated  # 返回所有数据，由渲染层控制显示数量
 

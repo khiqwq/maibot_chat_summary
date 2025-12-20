@@ -213,6 +213,10 @@ class ChatSummaryCommand(BaseCommand):
                     # 获取显示顺序配置
                     display_order = parse_config_list(self.get_config("summary.display_order", "24H,Topics,Portraits,Quotes,Rankings"))
 
+                    # 获取炫压抑评级配置
+                    max_depression_display = self.get_config("summary.max_depression_display", 6)
+                    depression_show_bottom = self.get_config("summary.depression_show_bottom", True)
+
                     # 计算目标日期
                     if time_range == "昨天":
                         target_date = datetime.now() - timedelta(days=1)
@@ -234,7 +238,9 @@ class ChatSummaryCommand(BaseCommand):
                         user_profile=None,
                         group_id=str(group_id_int),  # 添加群号用于标识和清理旧图片
                         display_order=display_order,
-                        target_date=target_date
+                        target_date=target_date,
+                        max_depression_display=max_depression_display,
+                        depression_show_bottom=depression_show_bottom
                     )
 
                     # 发送图片
@@ -1059,6 +1065,10 @@ class DailySummaryEventHandler(BaseEventHandler):
                             # 获取显示顺序配置
                             display_order = parse_config_list(self.get_config("summary.display_order", "24H,Topics,Portraits,Quotes,Rankings"))
 
+                            # 获取炫压抑评级配置
+                            max_depression_display = self.get_config("summary.max_depression_display", 6)
+                            depression_show_bottom = self.get_config("summary.depression_show_bottom", True)
+
                             # 自动总结使用今天的日期
                             target_date = datetime.now()
 
@@ -1076,7 +1086,9 @@ class DailySummaryEventHandler(BaseEventHandler):
                                 hourly_distribution=hourly_distribution,
                                 group_id=str(group_id),  # 添加群号用于标识和清理旧图片
                                 display_order=display_order,
-                                target_date=target_date
+                                target_date=target_date,
+                                max_depression_display=max_depression_display,
+                                depression_show_bottom=depression_show_bottom
                             )
 
                             # 发送图片
@@ -1238,6 +1250,16 @@ class ChatSummaryPlugin(BasePlugin):
                 description="图片模块显示顺序，用逗号分隔（可选项：24H=24H活跃轨迹, Topics=今日话题, Portraits=群友画像, Quotes=语出惊人, Rankings=炫压抑评级）",
                 input_type="textarea",
                 rows=3,
+            ),
+            "max_depression_display": ConfigField(
+                type=int,
+                default=6,
+                description="炫压抑评级最多展示人数",
+            ),
+            "depression_show_bottom": ConfigField(
+                type=bool,
+                default=True,
+                description="是否展示倒数排名（开启：前N/2名+后N/2名；关闭：只展示前N名）",
             ),
         },
         "user_summary": {

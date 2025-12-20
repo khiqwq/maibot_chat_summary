@@ -114,3 +114,7 @@ class AnalysisConfig:
     # JSON 返回验证
     MAX_REASON_LENGTH: int = 200     # 理由最大长度（防止LLM返回过长，容纳80字+标点符号）
     MAX_TITLE_LENGTH: int = 10       # 称号最大长度
+
+    # 炫压抑评级展示配置
+    MAX_DEPRESSION_DISPLAY: int = 6          # 炫压抑评级最多展示人数
+    DEPRESSION_SHOW_BOTTOM_HALF: bool = True # 是否展示倒数排名（True=前N/2+后N/2，False=只展示前N名）
