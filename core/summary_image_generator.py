@@ -260,8 +260,14 @@ class SummaryImageGenerator:
                     if depression_show_bottom:
                         # 展示前半 + 后半，正数优先（奇数时前半多1个）
                         # 6 -> 前3+后3, 7 -> 前4+后3, 8 -> 前4+后4
-                        top_count = (max_depression_display + 1) // 2  # 向上取整
-                        bottom_count = max_depression_display - top_count  # 剩余给后半
+                        if max_depression_display % 2 == 0:
+                            # 偶数：平分
+                            top_count = max_depression_display // 2
+                            bottom_count = max_depression_display // 2
+                        else:
+                            # 奇数：正数多1个
+                            top_count = max_depression_display // 2 + 1
+                            bottom_count = max_depression_display // 2
                         # 前半部分
                         for i, entry in enumerate(depression_index[:top_count], 1):
                             depression_rankings.append({
