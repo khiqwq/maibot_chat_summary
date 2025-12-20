@@ -258,10 +258,12 @@ class SummaryImageGenerator:
                 else:
                     # 超过最大展示数：根据配置决定展示方式
                     if depression_show_bottom:
-                        # 展示前 N/2 名 + 后 N/2 名
-                        half = max_depression_display // 2
+                        # 展示前半 + 后半，正数优先（奇数时前半多1个）
+                        # 6 -> 前3+后3, 7 -> 前4+后3, 8 -> 前4+后4
+                        top_count = (max_depression_display + 1) // 2  # 向上取整
+                        bottom_count = max_depression_display - top_count  # 剩余给后半
                         # 前半部分
-                        for i, entry in enumerate(depression_index[:half], 1):
+                        for i, entry in enumerate(depression_index[:top_count], 1):
                             depression_rankings.append({
                                 "name": entry.get("name", ""),
                                 "rank": entry.get("rank", ""),
@@ -269,13 +271,13 @@ class SummaryImageGenerator:
                                 "position": i
                             })
                         # 后半部分（倒数）
-                        bottom_entries = depression_index[-half:]
+                        bottom_entries = depression_index[-bottom_count:]
                         for i, entry in enumerate(bottom_entries, 1):
                             depression_rankings.append({
                                 "name": entry.get("name", ""),
                                 "rank": entry.get("rank", ""),
                                 "comment": entry.get("comment", ""),
-                                "position": f"fall {half - i + 1}"  # fall 3, fall 2, fall 1
+                                "position": f"fall {bottom_count - i + 1}"  # fall 3, fall 2, fall 1
                             })
                     else:
                         # 只展示前 N 名
