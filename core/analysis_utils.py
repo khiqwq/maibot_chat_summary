@@ -20,16 +20,21 @@ logger = get_logger("chat_analysis_utils")
 class ChatAnalysisUtils:
     """聊天记录分析工具类"""
 
-    # Emoji 正则表达式（完整Unicode范围）
+    # Emoji 正则表达式（精确匹配，避免误伤中文字符）
     EMOJI_PATTERN = re.compile(
         "["
         "\U0001F600-\U0001F64F"  # emoticons
         "\U0001F300-\U0001F5FF"  # symbols & pictographs
         "\U0001F680-\U0001F6FF"  # transport & map symbols
         "\U0001F1E0-\U0001F1FF"  # flags
-        "\U00002702-\U000027B0"
-        "\U000024C2-\U0001F251"
+        "\U00002702-\U000027B0"  # dingbats
         "\U0001F900-\U0001F9FF"  # supplemental symbols
+        "\U0001FA00-\U0001FA6F"  # chess symbols
+        "\U0001FA70-\U0001FAFF"  # symbols and pictographs extended-A
+        "\U00002600-\U000026FF"  # misc symbols
+        "\U0000FE00-\U0000FE0F"  # variation selectors
+        "\U0001F000-\U0001F02F"  # mahjong tiles
+        "\U0001F0A0-\U0001F0FF"  # playing cards
         "]+",
         flags=re.UNICODE
     )
@@ -1144,6 +1149,9 @@ class ChatAnalysisUtils:
 
                 if start_idx != -1 and end_idx != -1 and end_idx > start_idx:
                     result_cleaned = result_cleaned[start_idx:end_idx + 1]
+                elif start_idx != -1:
+                    # JSON 被截断，没有闭合的 ]，尝试修复
+                    result_cleaned = result_cleaned[start_idx:]
 
                 # 3. 尝试修复中文字符间的异常空格（可能是emoji清理或LLM输出导致）
                 # 保留JSON结构中的必要空格，只清理中文字符、数字、标点间的多余空格
@@ -1151,7 +1159,17 @@ class ChatAnalysisUtils:
                 result_cleaned = re.sub(r'([\u4e00-\u9fff])\s+([\d])', r'\1\2', result_cleaned)
                 result_cleaned = re.sub(r'([\d])\s+([\u4e00-\u9fff])', r'\1\2', result_cleaned)
 
-                data = json.loads(result_cleaned)
+                # 4. 尝试修复被截断的 JSON（找到最后一个完整的对象）
+                try:
+                    data = json.loads(result_cleaned)
+                except json.JSONDecodeError:
+                    # JSON 被截断，尝试找到最后一个完整的 } 并闭合数组
+                    result_fixed = ChatAnalysisUtils._fix_truncated_json_array(result_cleaned)
+                    if result_fixed:
+                        data = json.loads(result_fixed)
+                        logger.info(f"成功修复截断的JSON，解析出 {len(data)} 个对象")
+                    else:
+                        raise
 
                 if not isinstance(data, list):
                     logger.warning(f"清理后的数据类型错误: {type(data)}")
@@ -1169,6 +1187,61 @@ class ChatAnalysisUtils:
         except Exception as e:
             logger.error(f"解析JSON时发生未预期错误: {e}")
             return []
+
+    @staticmethod
+    def _fix_truncated_json_array(json_str: str) -> Optional[str]:
+        """尝试修复被截断的 JSON 数组
+
+        Args:
+            json_str: 可能被截断的 JSON 字符串
+
+        Returns:
+            修复后的 JSON 字符串，无法修复返回 None
+        """
+        try:
+            # 找到最后一个完整对象的结束位置
+            # 从后往前找 "}," 或 "}" 后跟空白和 "]"
+            # 策略：找到所有 "}" 的位置，从后往前尝试截断并闭合
+
+            # 找所有 "}" 的位置
+            brace_positions = []
+            in_string = False
+            escape_next = False
+
+            for i, char in enumerate(json_str):
+                if escape_next:
+                    escape_next = False
+                    continue
+                if char == '\\':
+                    escape_next = True
+                    continue
+                if char == '"' and not escape_next:
+                    in_string = not in_string
+                    continue
+                if char == '}' and not in_string:
+                    brace_positions.append(i)
+
+            # 从后往前尝试每个 } 位置
+            for pos in reversed(brace_positions):
+                # 截断到这个 } 并加上 ]
+                candidate = json_str[:pos + 1]
+                # 检查是否需要移除末尾的逗号
+                candidate = candidate.rstrip()
+                if candidate.endswith(','):
+                    candidate = candidate[:-1]
+                candidate = candidate + '\n]'
+
+                try:
+                    data = json.loads(candidate)
+                    if isinstance(data, list) and len(data) > 0:
+                        return candidate
+                except json.JSONDecodeError:
+                    continue
+
+            return None
+        except Exception as e:
+            logger.debug(f"修复截断JSON失败: {e}")
+            return None
 
     # ==================== 单用户总结专用函数 ====================
 
@@ -1439,18 +1512,21 @@ class ChatAnalysisUtils:
 {samples_text}
 
 评级标准：
-- S级：想色色但欲言又止,或疯狂发涩图/开黄腔(过度补偿)
-- A级：经常想开车但克制扭捏
-- B级：偶尔开车,表达自然
-- C级：很少提及或表达健康
-- D级：完全回避性话题
+- S级(121-150分)：想色色但欲言又止,或疯狂发涩图/开黄腔(过度补偿)
+- A级(91-120分)：经常想开车但克制扭捏
+- B级(61-90分)：偶尔开车,表达自然
+- C级(31-60分)：很少提及或表达健康
+- D级(0-30分)：完全回避性话题
 
-要求：评价25-30字，采用文言文风格，文雅而有趣。
+要求：
+1. 评价25-30字，采用文言文风格，文雅而有趣
+2. 必须给出一个0-150的精确分数(score)
 
 返回JSON（不要markdown代码块，不要emoji）：
 {{
   "name": "{user_name}",
   "rank": "S/A/B/C/D",
+  "score": 0-150的整数分数,
   "comment": "简短评价"
 }}"""
 
@@ -1469,9 +1545,20 @@ class ChatAnalysisUtils:
             if not data:
                 return None
 
+            # 验证并提取 score（0-150），用于精确排序
+            rank = data.get("rank", "C")
+            try:
+                score = int(data.get("score", 0))
+                score = max(0, min(150, score))  # 限制在 0-150 范围内
+            except (ValueError, TypeError):
+                # 如果没有 score 或无效，根据 rank 给一个默认分数
+                rank_default_scores = {"S": 135, "A": 105, "B": 75, "C": 45, "D": 15}
+                score = rank_default_scores.get(rank, 75)
+
             return {
                 "name": data.get("name", user_name),
-                "rank": data.get("rank", "C"),
+                "rank": rank,
+                "score": score,
                 "comment": data.get("comment", ""),
                 "user_id": user_id
             }
